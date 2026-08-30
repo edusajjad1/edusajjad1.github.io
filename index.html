@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>دربك سالك | رادار وازدحامات وسيطرات العراق اللحظية</title>
+  <meta name="description" content="المنصة التشاركية العراقية الأولى لرصد السيطرات والقطوعات المرورية، رادارات السرعة، ومحطات الوقود لحظة بلحظة.">
+  <meta name="theme-color" content="#0b0f19">
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚗</text></svg>">
+
+  <!-- Google Fonts: Alexandria & Tajawal -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+
+  <!-- Leaflet Map CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dark-theme">
+
+  <!-- Top Navbar / Header -->
+  <header class="top-nav">
+    <div class="nav-brand">
+      <div class="logo-radar">
+        <span class="pulse-ring"></span>
+        <i class="fa-solid fa-location-crosshairs"></i>
+      </div>
+      <div class="brand-text">
+        <h1>دربك سالك <span class="badge-live">مباشر 🔴</span></h1>
+        <p class="tagline">رادار السيطرات والازدحامات في العراق</p>
+      </div>
+    </div>
+
+    <!-- Governorate Quick Selector -->
+    <div class="city-selector-container">
+      <button class="city-dropdown-btn" id="cityDropdownBtn">
+        <i class="fa-solid fa-map-location-dot"></i>
+        <span id="currentCityName">بغداد</span>
+        <i class="fa-solid fa-chevron-down arrow-icon"></i>
+      </button>
+      <div class="city-dropdown-menu" id="cityDropdownMenu">
+        <div class="city-opt active" data-city="baghdad" data-lat="33.3152" data-lng="44.3661" data-zoom="12">
+          <span>🇮🇶 بغداد (العاصمة)</span>
+          <span class="city-reports-count" id="count-baghdad">24 بلاغ</span>
+        </div>
+        <div class="city-opt" data-city="basra" data-lat="30.5085" data-lng="47.8183" data-zoom="13">
+          <span>🌴 البصرة</span>
+          <span class="city-reports-count" id="count-basra">8 بلاغات</span>
+        </div>
+        <div class="city-opt" data-city="erbil" data-lat="36.1911" data-lng="44.0092" data-zoom="13">
+          <span>🏰 أربيل</span>
+          <span class="city-reports-count" id="count-erbil">6 بلاغات</span>
+        </div>
+        <div class="city-opt" data-city="najaf" data-lat="32.0000" data-lng="44.3333" data-zoom="13">
+          <span>🕌 النجف الأشرف</span>
+          <span class="city-reports-count" id="count-najaf">5 بلاغات</span>
+        </div>
+        <div class="city-opt" data-city="karbala" data-lat="32.6160" data-lng="44.0249" data-zoom="13">
+          <span>🌿 كربلاء المقدسة</span>
+          <span class="city-reports-count" id="count-karbala">7 بلاغات</span>
+        </div>
+        <div class="city-opt" data-city="mosul" data-lat="36.3400" data-lng="43.1300" data-zoom="13">
+          <span>🏛️ نينوى (الموصل)</span>
+          <span class="city-reports-count" id="count-mosul">4 بلاغات</span>
+        </div>
+        <div class="city-opt" data-city="sulaymaniyah" data-lat="35.5570" data-lng="45.4350" data-zoom="13">
+          <span>⛰️ السليمانية</span>
+          <span class="city-reports-count" id="count-sulaymaniyah">3 بلاغات</span>
+        </div>
+        <div class="city-opt" data-city="babil" data-lat="32.4786" data-lng="44.4286" data-zoom="13">
+          <span>🦁 بابل (الحلة)</span>
+          <span class="city-reports-count" id="count-babil">4 بلاغات</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="nav-actions">
+      <button class="nav-btn" id="locateMeBtn" title="تحديد موقعي الحالي">
+        <i class="fa-solid fa-crosshairs"></i>
+        <span class="btn-lbl">موقعي</span>
+      </button>
+      <button class="nav-btn primary-glow-btn" id="openReportModalBtn">
+        <i class="fa-solid fa-circle-plus"></i>
+        <span class="btn-lbl">بلّغ الآن</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Baghdad Bridges & Main Arteries Live Status Ticker -->
+  <div class="arteries-bar" id="arteriesBar">
+    <div class="ticker-badge">
+      <i class="fa-solid fa-bridge-water"></i> حالة الجسور السريعة:
+    </div>
+    <div class="ticker-scroll" id="tickerScroll">
+      <div class="ticker-item status-green" data-target="33.2844,44.3855">
+        <span class="dot"></span> جسر الجادرية: <strong class="val">سالك وانسيابي</strong>
+      </div>
+      <div class="ticker-item status-red" data-target="33.3275,44.4022">
+        <span class="dot"></span> جسر السنك: <strong class="val">مزدحم جداً</strong>
+      </div>
+      <div class="ticker-item status-yellow" data-target="33.3005,44.4028">
+        <span class="dot"></span> جسر 14 تموز (الخضراء): <strong class="val">تفتيش بطيء</strong>
+      </div>
+      <div class="ticker-item status-green" data-target="33.2970,44.4095">
+        <span class="dot"></span> جسر المعلق: <strong class="val">حركة طبيعية</strong>
+      </div>
+      <div class="ticker-item status-red" data-target="33.3440,44.4250">
+        <span class="dot"></span> سريع محمد القاسم: <strong class="val">زحام قرب الباب الشرقي</strong>
+      </div>
+      <div class="ticker-item status-yellow" data-target="33.2650,44.3720">
+        <span class="dot"></span> سريع الدورة: <strong class="val">كثافة مرورية</strong>
+      </div>
+      <div class="ticker-item status-red" data-target="33.2980,44.2480">
+        <span class="dot"></span> سيطرة الصقور (مدخل بغداد): <strong class="val">طابور شاحنات</strong>
+      </div>
+      <div class="ticker-item status-green" data-target="33.4020,44.3850">
+        <span class="dot"></span> سيطرة الشعب: <strong class="val">مفتوحة 3 مسارات</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search & Category Filters Bar -->
+  <div class="filters-container">
+    <div class="search-box">
+      <i class="fa-solid fa-magnifying-glass search-icon"></i>
+      <input type="text" id="searchInput" placeholder="ابحث عن شارع، جسر، سيطرة، أو منطقة...">
+      <button class="clear-search-btn" id="clearSearchBtn" style="display: none;">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <!-- Filter Pills -->
+    <div class="filter-pills" id="filterPills">
+      <button class="pill-btn active" data-category="all">
+        <i class="fa-solid fa-layer-group"></i> الكل (<span id="totalMarkersCount">0</span>)
+      </button>
+      <button class="pill-btn" data-category="checkpoint">
+        <i class="fa-solid fa-shield-halved text-checkpoint"></i> السيطرات (<span id="count-type-checkpoint">0</span>)
+      </button>
+      <button class="pill-btn" data-category="radar">
+        <i class="fa-solid fa-camera text-radar"></i> الرادارات والكاميرات (<span id="count-type-radar">0</span>)
+      </button>
+      <button class="pill-btn" data-category="block">
+        <i class="fa-solid fa-ban text-block"></i> القطوعات والتحويلات (<span id="count-type-block">0</span>)
+      </button>
+      <button class="pill-btn" data-category="traffic">
+        <i class="fa-solid fa-car-burst text-traffic"></i> زحامات وحوادث (<span id="count-type-traffic">0</span>)
+      </button>
+      <button class="pill-btn" data-category="fuel">
+        <i class="fa-solid fa-gas-pump text-fuel"></i> محطات البنزين (<span id="count-type-fuel">0</span>)
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Workspace Layout (Map + Side/Bottom Panel) -->
+  <main class="main-layout">
+    <!-- Leaflet Map Canvas -->
+    <div id="map" class="map-view"></div>
+
+    <!-- Floating Map Controls -->
+    <div class="map-floating-controls">
+      <button class="map-btn" id="toggleLayerBtn" title="تغيير نمط الخريطة (ليلي / نهاري / قمر صناعي)">
+        <i class="fa-solid fa-layer-group"></i>
+      </button>
+      <button class="map-btn" id="soundToggleBtn" title="كتم/تفعيل التنبيهات الصوتية">
+        <i class="fa-solid fa-volume-high"></i>
+      </button>
+      <button class="map-btn" id="refreshFeedBtn" title="تحديث البيانات اللحظية">
+        <i class="fa-solid fa-rotate-right"></i>
+      </button>
+    </div>
+
+    <!-- Live Stats Overlay Badge -->
+    <div class="live-stats-badge" id="liveStatsBadge">
+      <div class="stat-indicator">
+        <span class="radar-dot"></span>
+        <span id="activeReportsLabel"><strong>38</strong> حدث نشط الآن في العراق</span>
+      </div>
+      <div class="stat-users">
+        <i class="fa-solid fa-users"></i> <span id="onlineDriversCount">1,420</span> سائق متصل
+      </div>
+    </div>
+
+    <!-- Sidebar / Bottom Drawer for Recent Feed -->
+    <aside class="feed-drawer" id="feedDrawer">
+      <div class="drawer-handle" id="drawerHandle">
+        <div class="handle-bar"></div>
+        <div class="drawer-header">
+          <div class="drawer-title">
+            <i class="fa-solid fa-rss text-live"></i>
+            <h3>آخر البلاغات والتحديثات الحية</h3>
+          </div>
+          <button class="toggle-drawer-btn" id="toggleDrawerBtn">
+            <i class="fa-solid fa-chevron-up"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Feed List -->
+      <div class="feed-content" id="feedContent">
+        <!-- Feed Cards injected via JS -->
+      </div>
+    </aside>
+  </main>
+
+  <!-- Floating Quick Report Action Button (Mobile Big FAB) -->
+  <button class="fab-report-btn" id="fabReportBtn">
+    <div class="fab-radar-wave"></div>
+    <i class="fa-solid fa-plus"></i>
+    <span class="fab-text">بلّغ عن الطريق</span>
+  </button>
+
+  <!-- MODAL: Submit New Report (نظام إضافة بلاغ جديد) -->
+  <div class="modal-backdrop" id="reportModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">
+          <div class="icon-bubble">
+            <i class="fa-solid fa-bullhorn"></i>
+          </div>
+          <div>
+            <h3>إضافة بلاغ مروري جديد</h3>
+            <p class="modal-subtitle">ساعد إخوانك السائقين في اختيار الطريق الأفضل</p>
+          </div>
+        </div>
+        <button class="close-modal-btn" id="closeReportModalBtn">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form id="newReportForm" class="report-form">
+        <!-- 1. Event Type Selector -->
+        <div class="form-group">
+          <label class="form-label">نوع الحدث / البلاغ <span class="required">*</span></label>
+          <div class="type-grid">
+            <label class="type-card">
+              <input type="radio" name="reportType" value="checkpoint" checked>
+              <div class="card-content">
+                <i class="fa-solid fa-shield-halved icon text-checkpoint"></i>
+                <span class="name">سيطرة أمنية</span>
+              </div>
+            </label>
+            <label class="type-card">
+              <input type="radio" name="reportType" value="radar">
+              <div class="card-content">
+                <i class="fa-solid fa-camera icon text-radar"></i>
+                <span class="name">رادار / كاميرا</span>
+              </div>
+            </label>
+            <label class="type-card">
+              <input type="radio" name="reportType" value="traffic">
+              <div class="card-content">
+                <i class="fa-solid fa-car-burst icon text-traffic"></i>
+                <span class="name">زحام / حادث</span>
+              </div>
+            </label>
+            <label class="type-card">
+              <input type="radio" name="reportType" value="block">
+              <div class="card-content">
+                <i class="fa-solid fa-ban icon text-block"></i>
+                <span class="name">قطع / صيانة</span>
+              </div>
+            </label>
+            <label class="type-card">
+              <input type="radio" name="reportType" value="fuel">
+              <div class="card-content">
+                <i class="fa-solid fa-gas-pump icon text-fuel"></i>
+                <span class="name">محطة وقود</span>
+              </div>
+            </label>
+            <label class="type-card">
+              <input type="radio" name="reportType" value="shortcut">
+              <div class="card-content">
+                <i class="fa-solid fa-route icon text-shortcut"></i>
+                <span class="name">دربونة / طريق سالك</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- 2. Status / Severity Selector -->
+        <div class="form-group">
+          <label class="form-label">حالة الطريق والشدة <span class="required">*</span></label>
+          <div class="severity-selector">
+            <label class="sev-btn sev-green">
+              <input type="radio" name="severity" value="smooth" checked>
+              <span>🟢 سالك وانسيابي</span>
+            </label>
+            <label class="sev-btn sev-yellow">
+              <input type="radio" name="severity" value="moderate">
+              <span>🟡 بطيء / متوسط</span>
+            </label>
+            <label class="sev-btn sev-red">
+              <input type="radio" name="severity" value="heavy">
+              <span>🔴 واقف / خانق / مسدود</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 3. Location / Street Title -->
+        <div class="form-group">
+          <label class="form-label" for="reportTitle">اسم السيطرة / الشارع / المعلم <span class="required">*</span></label>
+          <div class="input-with-icon">
+            <i class="fa-solid fa-map-pin input-icon"></i>
+            <input type="text" id="reportTitle" required placeholder="مثال: سيطرة الصقور، جسر الجادرية، شارع فلسطين...">
+          </div>
+        </div>
+
+        <!-- 4. Location Coordinate Mode -->
+        <div class="form-group">
+          <label class="form-label">تحديد الموقع الجغرافي</label>
+          <div class="location-picker-actions">
+            <button type="button" class="btn-outline" id="pickCurrentGpsBtn">
+              <i class="fa-solid fa-location-crosshairs"></i> موقعي الحالي (GPS)
+            </button>
+            <button type="button" class="btn-outline active" id="pickOnMapBtn">
+              <i class="fa-solid fa-hand-pointer"></i> النقر على الخريطة
+            </button>
+          </div>
+          <div class="chosen-coords-box" id="chosenCoordsDisplay">
+            <i class="fa-solid fa-circle-check text-green"></i> 
+            <span id="coordsText">تم تحديد موقعك في بغداد (انقر على الخريطة لتغييره)</span>
+          </div>
+          <input type="hidden" id="reportLat" value="33.3152">
+          <input type="hidden" id="reportLng" value="44.3661">
+        </div>
+
+        <!-- 5. Description / Note -->
+        <div class="form-group">
+          <label class="form-label" for="reportNote">ملاحظة تفصيلية إضافية (اختياري)</label>
+          <textarea id="reportNote" rows="2" placeholder="مثال: تفتيش دقيق للمركبات، فتحوا مسار إضافي، توفر بنزين محسن..."></textarea>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" id="cancelReportBtn">إلغاء</button>
+          <button type="submit" class="btn-submit">
+            <i class="fa-solid fa-paper-plane"></i> نشر البلاغ فوراً
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Share / Community Alert (نافذة المشاركة السريعة لواتساب وتيليجرام) -->
+  <div class="modal-backdrop" id="shareModal">
+    <div class="modal-card share-card">
+      <div class="modal-header">
+        <div class="modal-title">
+          <div class="icon-bubble icon-share">
+            <i class="fa-solid fa-share-nodes"></i>
+          </div>
+          <div>
+            <h3>مشاركة حالة الطريق</h3>
+            <p class="modal-subtitle">شارك البلاغ مع كروبات السائقين والأهل</p>
+          </div>
+        </div>
+        <button class="close-modal-btn" id="closeShareModalBtn">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="share-preview-box" id="sharePreviewText">
+        <!-- Preview text generated dynamically -->
+      </div>
+      <div class="share-buttons-grid">
+        <button class="share-btn share-whatsapp" id="shareWhatsappBtn">
+          <i class="fa-brands fa-whatsapp"></i> مشاركة عبر واتساب
+        </button>
+        <button class="share-btn share-telegram" id="shareTelegramBtn">
+          <i class="fa-brands fa-telegram"></i> مشاركة في تيليجرام
+        </button>
+        <button class="share-btn share-copy" id="copyShareTextBtn">
+          <i class="fa-solid fa-copy"></i> نسخ نص البلاغ
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaflet Map JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  
+  <!-- Custom App Logic -->
+  <script src="app.js"></script>
+</body>
+</html>
