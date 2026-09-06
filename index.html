@@ -5,19 +5,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>دربك سالك | رادار وازدحامات وسيطرات العراق اللحظية</title>
   <meta name="description" content="المنصة التشاركية العراقية الأولى لرصد السيطرات والقطوعات المرورية، رادارات السرعة، ومحطات الوقود لحظة بلحظة.">
-  <meta name="theme-color" content="#0b0f19">
+  <meta name="theme-color" content="#0a0e17">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="دربك سالك">
+
+  <!-- Open Graph / Social -->
+  <meta property="og:title" content="دربك سالك - رادار العراق المروري">
+  <meta property="og:description" content="رصد السيطرات والازدحامات والرادارات في جميع محافظات العراق لحظة بلحظة">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://darbaksalik.me">
 
   <!-- PWA Manifest -->
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚗</text></svg>">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚗</text></svg>">
 
   <!-- Google Fonts: Alexandria & Tajawal -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 
   <!-- Leaflet Map CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+  <!-- Leaflet.markercluster CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
   
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -27,8 +42,11 @@
 </head>
 <body class="dark-theme">
 
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
   <!-- Top Navbar / Header -->
-  <header class="top-nav">
+  <header class="top-nav" id="topNav">
     <div class="nav-brand">
       <div class="logo-radar">
         <span class="pulse-ring"></span>
@@ -48,43 +66,97 @@
         <i class="fa-solid fa-chevron-down arrow-icon"></i>
       </button>
       <div class="city-dropdown-menu" id="cityDropdownMenu">
+        <div class="city-opt" data-city="all" data-lat="33.3152" data-lng="44.3661" data-zoom="7">
+          <span>🇮🇶 عموم العراق (الكل)</span>
+          <span class="city-reports-count" id="count-all">0 بلاغ</span>
+        </div>
+        <!-- الوسط -->
+        <div class="dropdown-section-label">المركز والجنوب</div>
         <div class="city-opt active" data-city="baghdad" data-lat="33.3152" data-lng="44.3661" data-zoom="12">
           <span>🇮🇶 بغداد (العاصمة)</span>
-          <span class="city-reports-count" id="count-baghdad">24 بلاغ</span>
+          <span class="city-reports-count" id="count-baghdad">0 بلاغ</span>
         </div>
         <div class="city-opt" data-city="basra" data-lat="30.5085" data-lng="47.8183" data-zoom="13">
           <span>🌴 البصرة</span>
-          <span class="city-reports-count" id="count-basra">8 بلاغات</span>
-        </div>
-        <div class="city-opt" data-city="erbil" data-lat="36.1911" data-lng="44.0092" data-zoom="13">
-          <span>🏰 أربيل</span>
-          <span class="city-reports-count" id="count-erbil">6 بلاغات</span>
-        </div>
-        <div class="city-opt" data-city="najaf" data-lat="32.0000" data-lng="44.3333" data-zoom="13">
-          <span>🕌 النجف الأشرف</span>
-          <span class="city-reports-count" id="count-najaf">5 بلاغات</span>
-        </div>
-        <div class="city-opt" data-city="karbala" data-lat="32.6160" data-lng="44.0249" data-zoom="13">
-          <span>🌿 كربلاء المقدسة</span>
-          <span class="city-reports-count" id="count-karbala">7 بلاغات</span>
-        </div>
-        <div class="city-opt" data-city="mosul" data-lat="36.3400" data-lng="43.1300" data-zoom="13">
-          <span>🏛️ نينوى (الموصل)</span>
-          <span class="city-reports-count" id="count-mosul">4 بلاغات</span>
-        </div>
-        <div class="city-opt" data-city="sulaymaniyah" data-lat="35.5570" data-lng="45.4350" data-zoom="13">
-          <span>⛰️ السليمانية</span>
-          <span class="city-reports-count" id="count-sulaymaniyah">3 بلاغات</span>
+          <span class="city-reports-count" id="count-basra">0</span>
         </div>
         <div class="city-opt" data-city="babil" data-lat="32.4786" data-lng="44.4286" data-zoom="13">
           <span>🦁 بابل (الحلة)</span>
-          <span class="city-reports-count" id="count-babil">4 بلاغات</span>
+          <span class="city-reports-count" id="count-babil">0</span>
+        </div>
+        <div class="city-opt" data-city="najaf" data-lat="32.0000" data-lng="44.3333" data-zoom="13">
+          <span>🕌 النجف الأشرف</span>
+          <span class="city-reports-count" id="count-najaf">0</span>
+        </div>
+        <div class="city-opt" data-city="karbala" data-lat="32.6160" data-lng="44.0249" data-zoom="13">
+          <span>🌿 كربلاء المقدسة</span>
+          <span class="city-reports-count" id="count-karbala">0</span>
+        </div>
+        <div class="city-opt" data-city="wasit" data-lat="32.6" data-lng="45.6" data-zoom="13">
+          <span>🏞️ واسط (الكوت)</span>
+          <span class="city-reports-count" id="count-wasit">0</span>
+        </div>
+        <div class="city-opt" data-city="diwaniyah" data-lat="31.9889" data-lng="44.9289" data-zoom="13">
+          <span>🌾 القادسية (الديوانية)</span>
+          <span class="city-reports-count" id="count-diwaniyah">0</span>
+        </div>
+        <div class="city-opt" data-city="maysan" data-lat="31.8333" data-lng="47.1333" data-zoom="13">
+          <span>🦎 ميسان (العمارة)</span>
+          <span class="city-reports-count" id="count-maysan">0</span>
+        </div>
+        <div class="city-opt" data-city="dhiqar" data-lat="31.0500" data-lng="46.2333" data-zoom="13">
+          <span>🏺 ذي قار (الناصرية)</span>
+          <span class="city-reports-count" id="count-dhiqar">0</span>
+        </div>
+        <div class="city-opt" data-city="muthanna" data-lat="28.6833" data-lng="45.2333" data-zoom="13">
+          <span>🏜️ المثنى (السماوة)</span>
+          <span class="city-reports-count" id="count-muthanna">0</span>
+        </div>
+        <!-- الشمال -->
+        <div class="dropdown-section-label">الشمال والوسط</div>
+        <div class="city-opt" data-city="mosul" data-lat="36.3400" data-lng="43.1300" data-zoom="13">
+          <span>🏛️ نينوى (الموصل)</span>
+          <span class="city-reports-count" id="count-mosul">0</span>
+        </div>
+        <div class="city-opt" data-city="diyala" data-lat="33.7667" data-lng="44.7167" data-zoom="13">
+          <span>🌊 ديالى (بعقوبة)</span>
+          <span class="city-reports-count" id="count-diyala">0</span>
+        </div>
+        <div class="city-opt" data-city="kirkuk" data-lat="35.4681" data-lng="44.3922" data-zoom="13">
+          <span>🛢️ كركوك</span>
+          <span class="city-reports-count" id="count-kirkuk">0</span>
+        </div>
+        <div class="city-opt" data-city="anbar" data-lat="33.4558" data-lng="43.3000" data-zoom="12">
+          <span>🌅 الأنبار (الرمادي)</span>
+          <span class="city-reports-count" id="count-anbar">0</span>
+        </div>
+        <div class="city-opt" data-city="salahalddin" data-lat="34.5553" data-lng="43.6746" data-zoom="13">
+          <span>⚔️ صلاح الدين (تكريت)</span>
+          <span class="city-reports-count" id="count-salahalddin">0</span>
+        </div>
+        <!-- كردستان -->
+        <div class="dropdown-section-label">إقليم كردستان</div>
+        <div class="city-opt" data-city="erbil" data-lat="36.1911" data-lng="44.0092" data-zoom="13">
+          <span>🏰 أربيل (هولير)</span>
+          <span class="city-reports-count" id="count-erbil">0</span>
+        </div>
+        <div class="city-opt" data-city="sulaymaniyah" data-lat="35.5570" data-lng="45.4350" data-zoom="13">
+          <span>⛰️ السليمانية</span>
+          <span class="city-reports-count" id="count-sulaymaniyah">0</span>
+        </div>
+        <div class="city-opt" data-city="duhok" data-lat="36.8669" data-lng="42.9813" data-zoom="13">
+          <span>🏔️ دهوك</span>
+          <span class="city-reports-count" id="count-duhok">0</span>
         </div>
       </div>
     </div>
 
     <!-- Quick Actions -->
     <div class="nav-actions">
+      <button class="nav-btn" id="statsBtn" title="إحصاءات المنصة">
+        <i class="fa-solid fa-chart-pie"></i>
+        <span class="btn-lbl">إحصاء</span>
+      </button>
       <button class="nav-btn" id="locateMeBtn" title="تحديد موقعي الحالي">
         <i class="fa-solid fa-crosshairs"></i>
         <span class="btn-lbl">موقعي</span>
@@ -126,6 +198,12 @@
       <div class="ticker-item status-green" data-target="33.4020,44.3850">
         <span class="dot"></span> سيطرة الشعب: <strong class="val">مفتوحة 3 مسارات</strong>
       </div>
+      <div class="ticker-item status-yellow" data-target="36.1980,44.0150">
+        <span class="dot"></span> طريق 100 متر أربيل: <strong class="val">رادار نقطة لنقطة</strong>
+      </div>
+      <div class="ticker-item status-green" data-target="30.5180,47.8350">
+        <span class="dot"></span> كورنيش البصرة: <strong class="val">انسيابي</strong>
+      </div>
     </div>
   </div>
 
@@ -148,16 +226,19 @@
         <i class="fa-solid fa-shield-halved text-checkpoint"></i> السيطرات (<span id="count-type-checkpoint">0</span>)
       </button>
       <button class="pill-btn" data-category="radar">
-        <i class="fa-solid fa-camera text-radar"></i> الرادارات والكاميرات (<span id="count-type-radar">0</span>)
+        <i class="fa-solid fa-camera text-radar"></i> الرادارات (<span id="count-type-radar">0</span>)
       </button>
       <button class="pill-btn" data-category="block">
-        <i class="fa-solid fa-ban text-block"></i> القطوعات والتحويلات (<span id="count-type-block">0</span>)
+        <i class="fa-solid fa-ban text-block"></i> القطوعات (<span id="count-type-block">0</span>)
       </button>
       <button class="pill-btn" data-category="traffic">
-        <i class="fa-solid fa-car-burst text-traffic"></i> زحامات وحوادث (<span id="count-type-traffic">0</span>)
+        <i class="fa-solid fa-car-burst text-traffic"></i> الزحامات (<span id="count-type-traffic">0</span>)
       </button>
       <button class="pill-btn" data-category="fuel">
-        <i class="fa-solid fa-gas-pump text-fuel"></i> محطات البنزين (<span id="count-type-fuel">0</span>)
+        <i class="fa-solid fa-gas-pump text-fuel"></i> البنزين (<span id="count-type-fuel">0</span>)
+      </button>
+      <button class="pill-btn" data-category="shortcut">
+        <i class="fa-solid fa-route text-shortcut"></i> الدرابين (<span id="count-type-shortcut">0</span>)
       </button>
     </div>
   </div>
@@ -169,8 +250,11 @@
 
     <!-- Floating Map Controls -->
     <div class="map-floating-controls">
-      <button class="map-btn" id="toggleLayerBtn" title="تغيير نمط الخريطة (ليلي / نهاري / قمر صناعي)">
+      <button class="map-btn" id="toggleLayerBtn" title="تغيير نمط الخريطة">
         <i class="fa-solid fa-layer-group"></i>
+      </button>
+      <button class="map-btn" id="clusterToggleBtn" title="تجميع / تفريق الأيقونات">
+        <i class="fa-solid fa-object-group"></i>
       </button>
       <button class="map-btn" id="soundToggleBtn" title="كتم/تفعيل التنبيهات الصوتية">
         <i class="fa-solid fa-volume-high"></i>
@@ -184,11 +268,17 @@
     <div class="live-stats-badge" id="liveStatsBadge">
       <div class="stat-indicator">
         <span class="radar-dot"></span>
-        <span id="activeReportsLabel"><strong>38</strong> حدث نشط الآن في العراق</span>
+        <span id="activeReportsLabel"><strong>0</strong> حدث نشط الآن في العراق</span>
       </div>
       <div class="stat-users">
         <i class="fa-solid fa-users"></i> <span id="onlineDriversCount">1,420</span> سائق متصل
       </div>
+    </div>
+
+    <!-- Connection Status Badge -->
+    <div class="connection-status" id="connectionStatus">
+      <span class="conn-dot offline"></span>
+      <span id="connLabel">يتصل...</span>
     </div>
 
     <!-- Sidebar / Bottom Drawer for Recent Feed -->
@@ -200,15 +290,27 @@
             <i class="fa-solid fa-rss text-live"></i>
             <h3>آخر البلاغات والتحديثات الحية</h3>
           </div>
-          <button class="toggle-drawer-btn" id="toggleDrawerBtn">
-            <i class="fa-solid fa-chevron-up"></i>
-          </button>
+          <div class="drawer-header-actions">
+            <button class="drawer-sort-btn" id="drawerSortBtn" title="ترتيب حسب">
+              <i class="fa-solid fa-sort"></i>
+            </button>
+            <button class="toggle-drawer-btn" id="toggleDrawerBtn">
+              <i class="fa-solid fa-chevron-up"></i>
+            </button>
+          </div>
         </div>
       </div>
 
       <!-- Feed List -->
       <div class="feed-content" id="feedContent">
         <!-- Feed Cards injected via JS -->
+      </div>
+      
+      <!-- Load More -->
+      <div class="load-more-container" id="loadMoreContainer" style="display:none;">
+        <button class="load-more-btn" id="loadMoreBtn">
+          <i class="fa-solid fa-chevron-down"></i> تحميل المزيد
+        </button>
       </div>
     </aside>
   </main>
@@ -220,7 +322,30 @@
     <span class="fab-text">بلّغ عن الطريق</span>
   </button>
 
-  <!-- MODAL: Submit New Report (نظام إضافة بلاغ جديد) -->
+  <!-- STATS PANEL OVERLAY -->
+  <div class="modal-backdrop" id="statsModal">
+    <div class="modal-card stats-card">
+      <div class="modal-header">
+        <div class="modal-title">
+          <div class="icon-bubble icon-stats">
+            <i class="fa-solid fa-chart-pie"></i>
+          </div>
+          <div>
+            <h3>إحصاءات منصة دربك سالك</h3>
+            <p class="modal-subtitle">لحظة بلحظة من جميع محافظات العراق</p>
+          </div>
+        </div>
+        <button class="close-modal-btn" id="closeStatsModalBtn">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="stats-body" id="statsBody">
+        <!-- Injected by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Submit New Report -->
   <div class="modal-backdrop" id="reportModal">
     <div class="modal-card">
       <div class="modal-header">
@@ -282,7 +407,7 @@
               <input type="radio" name="reportType" value="shortcut">
               <div class="card-content">
                 <i class="fa-solid fa-route icon text-shortcut"></i>
-                <span class="name">دربونة / طريق سالك</span>
+                <span class="name">دربونة سالكة</span>
               </div>
             </label>
           </div>
@@ -341,10 +466,19 @@
           <textarea id="reportNote" rows="2" placeholder="مثال: تفتيش دقيق للمركبات، فتحوا مسار إضافي، توفر بنزين محسن..."></textarea>
         </div>
 
+        <!-- 6. Reporter Nickname (optional) -->
+        <div class="form-group">
+          <label class="form-label" for="reporterName">اسمك / لقبك (اختياري)</label>
+          <div class="input-with-icon">
+            <i class="fa-solid fa-user input-icon"></i>
+            <input type="text" id="reporterName" placeholder="مثال: كابتن أبو علي، سجاد التميمي...">
+          </div>
+        </div>
+
         <!-- Submit Button -->
         <div class="modal-footer">
           <button type="button" class="btn-secondary" id="cancelReportBtn">إلغاء</button>
-          <button type="submit" class="btn-submit">
+          <button type="submit" class="btn-submit" id="submitReportBtn">
             <i class="fa-solid fa-paper-plane"></i> نشر البلاغ فوراً
           </button>
         </div>
@@ -352,7 +486,7 @@
     </div>
   </div>
 
-  <!-- MODAL: Share / Community Alert (نافذة المشاركة السريعة لواتساب وتيليجرام) -->
+  <!-- MODAL: Share / Community Alert -->
   <div class="modal-backdrop" id="shareModal">
     <div class="modal-card share-card">
       <div class="modal-header">
@@ -386,9 +520,27 @@
     </div>
   </div>
 
+  <!-- INSTALL PWA PROMPT -->
+  <div class="pwa-install-bar" id="pwaInstallBar" style="display:none;">
+    <div class="pwa-install-content">
+      <i class="fa-solid fa-mobile-screen-button"></i>
+      <div>
+        <strong>ثبّت دربك سالك</strong>
+        <p>أضفه لشاشتك الرئيسية للوصول السريع</p>
+      </div>
+    </div>
+    <div class="pwa-install-actions">
+      <button class="pwa-install-btn" id="pwaInstallBtn">تثبيت</button>
+      <button class="pwa-dismiss-btn" id="pwaDismissBtn"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+  </div>
+
   <!-- Leaflet Map JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   
+  <!-- Leaflet.markercluster JS -->
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
   <!-- Custom App Logic -->
   <script src="app.js"></script>
 </body>
